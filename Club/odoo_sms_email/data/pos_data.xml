@@ -1,0 +1,207 @@
+<?xml version="1.0" ?>
+<odoo>
+    <data noupdate="1">
+
+        <record id="hotel_reservation_email_template" model="mail.template">
+            <field name="name">Hotel Reservation Details</field>
+            <field name="model_id" ref="odoo_sms_email.model_hotel_reservation"/>
+            <field name="subject">${object.warehouse_id and object.warehouse_id.name | safe} Reservation No (Ref : ${object.reservation_no or '' | safe})</field>
+            <field name="email_from">${(object.user_id.email and '%s &lt;%s&gt;' % (object.user_id.name, object.user_id.email) or '')|safe}</field>
+            <field name="email_to">${object.partner_id and object.partner_id.email}</field>
+            <field name="lang">${object.partner_id.lang | safe}</field>
+            <field name="auto_delete" eval="True"/>
+            <field name="body_html"><![CDATA[
+                <p>Dear ${object.partner_id.name}
+                % if object.partner_id.parent_id:
+                    (<i>${object.partner_id.parent_id.name}</i>)
+                % endif
+                ,</p>
+                <p>Your reservation is confirmed on 
+                    <strong>${object.date_order}</strong> at 
+                    <strong>${ object.warehouse_id and object.warehouse_id.name | safe}</strong>
+                % if object.reservation_no:
+                    (with reference: ${object.reservation_no} )
+                % endif 
+                </p>
+                <p>Here Are Your Reservation Details : </p>
+                % if object.checkin:
+                    <p>Your arrival date : ${object.checkin}</p>
+                % endif 
+                % if object.checkout:
+                    <p>Your departure date : ${object.checkout}</p>
+                % endif 
+                <p>
+                % if object.reservation_line:
+                    Number of rooms : ${len(object.reservation_line)}
+                % endif 
+                </p>
+                % if object.adults:
+                    Adults : ${object.adults}
+                % endif 
+                % if object.children:
+                    Children : ${object.children}
+                % endif
+                <p>Thank you,</p>
+                <p><strong>${object.user_id and object.user_id.company_id and object.user_id.company_id.name | safe}</strong></p>
+                % if object.user_id and object.user_id.signature:
+                    ${object.user_id.signature | safe}
+                % endif]]>
+            </field>
+        </record>
+
+        <!-- hotel folio mail template-->
+        <record id="hotel_folio_email_template" model="mail.template">
+            <field name="name">Hotel Folio Details</field>
+            <field name="model_id" ref="odoo_sms_email.model_hotel_folio"/>
+            <field name="subject">${object.warehouse_id and object.warehouse_id.name | safe} Hotel Folio No : ${object.name or '' | safe}</field>
+            <field name="email_from">${(object.user_id.email and '%s &lt;%s&gt;' % (object.user_id.name, object.user_id.email) or '')|safe}</field>
+            <field name="email_to">${object.partner_id and object.partner_id.email}</field>
+            <field name="lang">${object.partner_id.lang | safe}</field>
+            <field name="auto_delete" eval="True"/>
+            <field name="body_html"><![CDATA[
+                <p>Dear ${object.partner_id.name}
+                % if object.partner_id.parent_id:
+                    (<i>${object.partner_id.parent_id.name}</i>)
+                % endif
+                ,</p>
+                <p>Your hotel folio is confirmed on 
+                    <strong>${object.date_order}</strong> at 
+                    <strong>${object.warehouse_id and object.warehouse_id.name | safe}</strong>
+                % if object.name:
+                    (with reference: ${object.name} )
+                % endif 
+                </p>
+                <p>Here Are Your Hotel Details : </p>
+                % if object.checkin_date:
+                    <p>Your arrival date : ${object.checkin_date}</p>
+                % endif 
+                % if object.checkout_date:
+                    <p>Your departure date : ${object.checkout_date}</p>
+                % endif 
+                % if object.room_lines:
+                    <p>Number of rooms : ${len(object.room_lines)}</p>
+                    % for room in object.room_lines:
+                        <p> Room No : ${room.product_id and room.product_id.name | safe} and Price: ${room.price_unit or 0}</p>
+                    % endfor
+                % endif 
+                <p>Thank you,</p>
+                <p><strong>${object.user_id and object.user_id.company_id and object.user_id.company_id.name | safe}</strong></p>
+                % if object.user_id and object.user_id.signature:
+                    ${object.user_id.signature | safe}
+                % endif]]>
+            </field>
+        </record>
+
+        <!-- invoice validation mail -->
+        <record id="email_on_invoice_validation" model="mail.template">
+            <field name="name"> Send On Invoice Validation </field>
+            <field name="email_from">${(object.user_id.email and '%s &lt;%s&gt;' % (object.user_id.name, object.user_id.email) or '')|safe}</field>
+            <field name="subject">${object.company_id.name} Invoice (Ref ${object.number or 'n/a'})</field>
+            <field name="partner_to">${object.partner_id.id}</field>
+            <field name="model_id" ref="account.model_account_invoice"/>
+            <field name="auto_delete" eval="True"/>
+            <field name="lang">${object.partner_id.lang}</field>
+            <field name="body_html"><![CDATA[
+                <p>Dear ${object.partner_id.name}
+                % if object.partner_id.parent_id:
+                    (${object.partner_id.parent_id.name})
+                % endif
+                </p>
+                <p>Here is your invoice ${object.number}
+                % if object.origin:
+                (with reference: ${object.origin} )
+                % endif
+                amounting in ${object.amount_total} ${object.currency_id.name}
+                from ${object.company_id.name}.
+                </p>
+                <p>Please remit payment at your earliest convenience.</p>
+                <p>Thank you,</p>
+                % if object.user_id and object.user_id.signature:
+                    ${object.user_id.signature | safe}
+                % endif
+                ]]>
+            </field>
+        </record>
+
+        <!-- sms templates -->
+
+        <record id="template_for_invoice_validation" model="sms.template">
+            <field name="name">Invoice Validation</field>
+            <field name="model_id" ref="account.model_account_invoice"/>
+            <field name="template_body">Dear ${object.partner_id.name},
+Your invoice with reference
+% if object.number:
+${object.number}
+% endif
+is validated.Please remit payment at your earliest convenience.
+Thank you
+            </field>
+        </record>
+
+        <record id="template_for_hotel_confirmation" model="sms.template">
+            <field name="name">Hotel confirmation</field>
+            <field name="model_id" ref="hotel.model_hotel_folio"/>
+            <field name="template_body">Dear ${object.partner_id.name},
+Your hotel Folio is confirmed
+% if object.name:
+with reference: ${object.name}
+% endif 
+Thank you
+            </field>
+        </record>
+
+        <record id="template_for_reservation_confirmation" model="sms.template">
+            <field name="name">Reservation confirmation</field>
+            <field name="model_id" ref="hotel_reservation.model_hotel_reservation"/>
+            <field name="template_body">Dear ${object.partner_id.name}
+Your Hotel Reservation is confirmed
+% if object.reservation_no:
+with reference: ${object.reservation_no}
+% endif
+Thank you
+            </field>
+        </record>
+
+        <record id="template_for_point_of_validation" model="sms.template">
+            <field name="name">POS Validation</field>
+            <field name="model_id" ref="odoo_sms_email.model_pos_order"/>
+            <field name="template_body">Dear ${object.partner_id.name},
+Your order is validated
+% if object.pos_reference:
+with reference: ${object.pos_reference}
+% endif 
+Thank you
+            </field>
+        </record>
+
+        <!-- POS Email template -->
+        <!-- <record id="email_template_mail_on_validation" model="mail.template">
+            <field name="name">POS Order: Details</field>
+            <field name="model_id" ref="odoo_sms_email.model_pos_order"/>
+            <field name="subject">${object.company_id.name | safe} Order (Ref : ${object.pos_reference or '' | safe})</field>
+            <field name="email_from">${(object.user_id.email and '%s &lt;%s&gt;' % (object.user_id.name, object.user_id.email) or '')|safe}</field>
+            <field name="email_to">${object.partner_id and object.partner_id.email}</field>
+            <field name="lang">${object.partner_id.lang | safe}</field>
+            <field name="auto_delete" eval="True"/>
+            <field name="body_html"><![CDATA[
+                <p>Dear ${object.partner_id.name}
+                % if object.partner_id.parent_id:
+                    (<i>${object.partner_id.parent_id.name}</i>)
+                % endif
+                ,</p>
+                <p>Here is your order details
+                % if object.pos_reference:
+                (with reference: ${object.pos_reference} )
+                % endif
+                amounting in <strong>${object.amount_total} ${object.company_id.currency_id.name | safe}</strong>
+                from ${object.company_id.name}.
+                </p>
+                <p>Please remit payment at your earliest convenience.</p>
+                <p>Thank you,</p>
+                % if object.user_id and object.user_id.signature:
+                    ${object.user_id.signature | safe}
+                % endif]]>
+            </field>
+        </record> -->
+    </data>
+</odoo>

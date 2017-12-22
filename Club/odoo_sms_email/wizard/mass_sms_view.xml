@@ -1,0 +1,27 @@
+<odoo>
+    <data>
+
+        <record id="mass_sms_send_view" model="ir.ui.view">
+            <field name="name">send.mass.message.form</field>
+            <field name="model">send.mass.message</field>
+            <field name="arch" type="xml">
+                <form string="Confirm Draft Invoices">
+                    <p class="oe_black" style="font-weight: bold; font-size: 120%;">
+                        Before writing mail make sure all partners must have mobile number.
+                    </p>
+                    <field name="message_text" col="6" placeholder=" Write Your SMS Message Here"/>
+                    <footer>
+                        <button confirm="Do you want to proceed ?. sms will not send to partners which does not have mobile number" string="Send" name="mass_message_send" type="object" default_focus="1" class="btn-primary"/>
+                        <button string="Cancel" class="btn-default" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <act_window id="action_mass_sms_send"
+            multi="True"
+            key2="client_action_multi" name="Partner Mass SMS"
+            res_model="send.mass.message" src_model="res.partner"
+            view_mode="form" target="new" view_type="form" />
+    </data>
+</odoo>
